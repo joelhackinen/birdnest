@@ -5,10 +5,17 @@ const cors = require('cors')
 
 app.use(cors())
 
-app.get('/', async (req, res) => {
+app.get('/drones', async (req, res) => {
   const response = await nodefetch('https://assignments.reaktor.com/birdnest/drones')
   const str = await response.text()
   res.send(str)
+})
+
+app.use(express.json())
+
+app.get('/pilots/:serialNumber', async (req, res) => {
+  const response = await nodefetch(`https://assignments.reaktor.com/birdnest/pilots/${req.params.serialNumber}`)
+  res.json(response.data)
 })
 
 app.listen(4000, () => {

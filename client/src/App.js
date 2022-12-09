@@ -1,32 +1,47 @@
-import React, { useEffect, useState } from 'react'
-import axios from 'axios'
+import React, { useState } from 'react'
+import { getDrones } from './services/droneService'
 
 // No control over the target API in order to socketize it --> the only way is to poll
 
 
 const App = () => {
-  const [data, setData] = useState([])
-  useEffect(() => {
-    axios.get('http://localhost:4000/')
-      .then(res => {
-        const parsed = new DOMParser().parseFromString(res.data, 'application/xml')
-        const drones = parsed.querySelectorAll('drone')
-        setData(Array.from(drones))
-      })
-      .catch(error => console.log(error))
-  }, [])
+  const [drones, setDrones] = useState([])
 
-  if (!data) {
+  const fetchDrones = async () => {
+    const data = await getDrones()
+    const parsed = new DOMParser().parseFromString(data, 'application/xml')
+    const droneNodes = parsed.querySelectorAll('drone')
+    const objs = Array.from(droneNodes).map(d => ({
+      serialNumber: d.children[0].textContent,
+      x: d.children[7].textContent,
+      y: d.children[8].textContent
+    }))
+    setDrones(objs)
+  }
+
+  const calculateDistance = (drone) => {
+    const res = Math.sqrt(Math.pow(250000 - drone.x, 2) + Math.pow(250000 - drone.y, 2))
+    console.log(res)
+    return res
+  }
+
+  // const ndzDrones = drones.filter(d => calculateDistance(d) > 1)
+
+
+  if (!drones) {
     return <p>Loading...</p>
   }
 
   return (
     <div>
+      <button onClick={fetchDrones}>get</button>
+      <h3>All drones</h3>
       <ul>
-        {data.map((item, i) =>
+        {drones.map((d, i) =>
           <li key={i}>
-            <div>{item.children[0].textContent}</div>
-            <div>{item.children[7].textContent} --- {item.children[8].textContent}</div>
+            <div>{d.serialNumber}</div>
+            <div>{d.x} --- {d.y}</div>
+            {calculateDistance(d) <= 100000 ? <strong>violated</strong> : null}
           </li>
         )}
       </ul>
