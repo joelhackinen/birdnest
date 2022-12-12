@@ -1,50 +1,39 @@
 import React, { useState } from 'react'
 import { getDrones } from './services/droneService'
+import { droneUpdater, calculateDistance } from './utils/helper'
+import CurrentDrones from './components/CurrentDrones'
+import NDZDrones from './components/NDZDrones'
 
 // No control over the target API in order to socketize it --> the only way is to poll
 
 
 const App = () => {
   const [drones, setDrones] = useState([])
+  const [ndzDrones, setNdzDrones] = useState([])
 
   const fetchDrones = async () => {
+    const date = Date.now()
+    const tenMinutes = date + 600000  // 10 minutes in milliseconds
     const data = await getDrones()
     const parsed = new DOMParser().parseFromString(data, 'application/xml')
     const droneNodes = parsed.querySelectorAll('drone')
     const objs = Array.from(droneNodes).map(d => ({
       serialNumber: d.children[0].textContent,
-      x: d.children[7].textContent,
-      y: d.children[8].textContent
+      violating: calculateDistance(d.children[7].textContent, d.children[8].textContent) < 100000,
     }))
+    setNdzDrones(droneUpdater(objs, tenMinutes, date, ndzDrones))
     setDrones(objs)
   }
 
-  const calculateDistance = (drone) => {
-    const res = Math.sqrt(Math.pow(250000 - drone.x, 2) + Math.pow(250000 - drone.y, 2))
-    console.log(res)
-    return res
-  }
-
-  // const ndzDrones = drones.filter(d => calculateDistance(d) > 1)
-
-
-  if (!drones) {
+  if (!drones && !ndzDrones) {
     return <p>Loading...</p>
   }
 
   return (
     <div>
       <button onClick={fetchDrones}>get</button>
-      <h3>All drones</h3>
-      <ul>
-        {drones.map((d, i) =>
-          <li key={i}>
-            <div>{d.serialNumber}</div>
-            <div>{d.x} --- {d.y}</div>
-            {calculateDistance(d) <= 100000 ? <strong>violated</strong> : null}
-          </li>
-        )}
-      </ul>
+      <CurrentDrones drones={drones} />
+      <NDZDrones ndzDrones={ndzDrones} />
     </div>
   )
 }
