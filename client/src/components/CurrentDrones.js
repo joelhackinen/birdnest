@@ -6,9 +6,9 @@ const CurrentDrones = ({ drones }) => {
     <div>
       <h3>All drones</h3>
       <ul>
-        {drones.map((d, i) =>
-          <li key={i}>
-            {d.serialNumber} {d.violating ? <strong>now violating</strong> : null}
+        {drones.map(d =>
+          <li key={d.sn}>
+            {d.sn} {d.dist < 100000 ? <strong>now violating</strong> : null}
           </li>
         )}
       </ul>

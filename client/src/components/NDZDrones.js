@@ -1,15 +1,15 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-const NDZDrones = ({ ndzDrones }) => {
+const NDZDrones = ({ drones, date }) => {
   return (
     <div>
-      <h3>NDZ drones in the last 10 minutes</h3>
+      <h3>Violating drones in the last 10 minutes</h3>
       <ul>
-        {ndzDrones.map((d, i) =>
-          <li key={i}>
-            <div>{d.serialNumber}</div>
-            <div>removal on: {d.removalDate}</div>
+        {drones.map(d =>
+          <li key={d.sn}>
+            <div>{d.sn}</div>
+            <div>removal in: {(d.removalDate - date) / 60000} minutes</div>
           </li>
         )}
       </ul>
@@ -18,7 +18,8 @@ const NDZDrones = ({ ndzDrones }) => {
 }
 
 NDZDrones.propTypes = {
-  ndzDrones: PropTypes.array.isRequired
+  drones: PropTypes.array.isRequired,
+  date: PropTypes.number.isRequired
 }
 
 export default NDZDrones
